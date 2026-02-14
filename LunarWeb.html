@@ -32,7 +32,7 @@ body {
         rotateX(calc(var(--mouseY, 0deg) + var(--breathY, 0deg)));
 }
 
-/* 🔥 呼吸只改變變數，不再改 transform */
+/* 🔥 呼吸只改變變數 */
 .breathe-layer {
     transform-style: preserve-3d;
     animation: breathe 6s ease-in-out infinite;
@@ -114,9 +114,8 @@ let degree = 0;
 let currentIndex = 0;
 let sparkleCount = 0;
 
-/* 🔥 滑鼠改 CSS 變數，不再直接改 transform */
+/* 🔥 滑鼠傾斜 */
 document.addEventListener('mousemove', (e) => {
-
     const x = (e.clientX - window.innerWidth / 2) / 25;
     const y = (e.clientY - window.innerHeight / 2) / 25;
 
@@ -124,8 +123,10 @@ document.addEventListener('mousemove', (e) => {
     tilt.style.setProperty('--mouseY', -y + 'deg');
 });
 
-/* 🔥 點擊旋轉 */
-card.addEventListener('click', (e) => {
+/* 🔥 整頁點擊都會翻轉 */
+document.addEventListener('click', (e) => {
+
+    if (e.target.classList.contains('sparkle')) return;
 
     degree += 360;
     card.style.transform = `rotateY(${degree}deg)`;
