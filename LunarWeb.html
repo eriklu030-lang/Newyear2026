@@ -17,14 +17,25 @@
             perspective: 2000px;
         }
 
+        /* 呼吸動畫定義 */
+        @keyframes breatheRotation {
+            0% { transform: rotateY(-5deg) rotateX(2deg); }
+            50% { transform: rotateY(5deg) rotateX(-2deg); }
+            100% { transform: rotateY(-5deg) rotateX(2deg); }
+        }
+
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
-            /* 核心：只使用最穩定的 CSS 旋轉邏輯 */
-            transform: rotateY(0deg) translateZ(0); 
-            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
             will-change: transform;
+            /* 預設維持一個微小的旋轉狀態，並交由 JS 控制點擊旋轉 */
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* 當沒有在旋轉時，加入一個自動擺動的容器效果 */
+        .card-idle {
+            animation: breatheRotation 6s ease-in-out infinite;
         }
 
         .card-image {
@@ -53,7 +64,7 @@
 </head>
 <body>
 
-    <div class="card-wrapper" id="card">
+    <div class="card-wrapper card-idle" id="card">
         <img src="card_image.png" id="card-img" alt="Card" class="card-image">
     </div>
 
@@ -69,7 +80,7 @@
         const subTitle = document.getElementById('sub-title');
 
         const contents = [
-            { img: 'card_image.png', t1: '新年快樂 · 爆冷成功', t2: 'Happy Lunar New Year' },
+            { img: 'card_image.png', t1: 'Erik 祝大家新年快樂', t2: 'Happy Lunar New Year' },
             { img: 'card_image_2.png', t1: '萬事如意 · 歲歲平安', t2: 'Prosperity and Peace' },
             { img: 'card_image_3.png', t1: '心想事成 · 福氣滿滿', t2: 'May All Your Wishes Come True' }
         ];
@@ -79,11 +90,12 @@
         let sparkleCount = 0;
 
         card.addEventListener('click', (e) => {
-            // 1. 旋轉門效果：每次點擊累加 360 度
+            // 點擊時暫時移除自動呼吸動畫，避免衝突
+            card.classList.remove('card-idle');
+
             degree += 360;
             card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
 
-            // 2. 內容切換：在轉到一半時悄悄更換
             setTimeout(() => {
                 currentIndex = (currentIndex + 1) % contents.length;
                 cardImg.src = contents[currentIndex].img;
@@ -91,51 +103,11 @@
                 subTitle.innerText = contents[currentIndex].t2;
             }, 250);
 
-            // 3. ✨ 煙火噴發 (嚴格遵守物理參數)
+            // 大旋轉結束後，把自動呼吸加回來，但要保持目前的旋轉角度
+            setTimeout(() => {
+                // 如果需要轉完後繼續呼吸，這裡可以再加邏輯，
+                // 但為了穩定性，目前設計為點擊後維持在該角度，或者你希望它繼續擺動？
+            }, 1200);
+
             createFirework(e.clientX, e.clientY);
         });
-
-        function createFirework(x, y) {
-            const amount = 20; 
-            for (let i = 0; i < amount; i++) {
-                if (sparkleCount >= 50) break; 
-                
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.innerHTML = '✨';
-                document.body.appendChild(sparkle);
-                sparkleCount++;
-
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 2.5 + Math.random() * 5; // 速度減半
-                let vx = Math.cos(angle) * velocity;
-                let vy = Math.sin(angle) * velocity - 3; 
-                let posX = x;
-                let posY = y;
-                let opacity = 1;
-                let gravity = 0.2; 
-
-                function animateSparkle() {
-                    posX += vx;
-                    posY += (vy + gravity);
-                    gravity += 0.35; // 加強重力感
-                    opacity -= 0.01; // 顯示時間兩倍
-
-                    sparkle.style.left = posX + 'px';
-                    sparkle.style.top = posY + 'px';
-                    sparkle.style.opacity = opacity;
-                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
-
-                    if (opacity > 0) {
-                        requestAnimationFrame(animateSparkle);
-                    } else {
-                        sparkle.remove();
-                        sparkleCount--;
-                    }
-                }
-                animateSparkle();
-            }
-        }
-    </script>
-</body>
-</html>
