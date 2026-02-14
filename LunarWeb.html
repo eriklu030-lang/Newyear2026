@@ -17,25 +17,28 @@
             perspective: 2000px;
         }
 
-        /* 呼吸動畫定義 */
-        @keyframes breatheRotation {
+        /* 1. 外層容器：負責自動呼吸擺動 */
+        .idle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: breathe 6s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes breathe {
             0% { transform: rotateY(-5deg) rotateX(2deg); }
             50% { transform: rotateY(5deg) rotateX(-2deg); }
             100% { transform: rotateY(-5deg) rotateX(2deg); }
         }
 
+        /* 2. 內層卡片：負責點擊 360 度旋轉 */
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
             transform-style: preserve-3d;
-            will-change: transform;
-            /* 預設維持一個微小的旋轉狀態，並交由 JS 控制點擊旋轉 */
             transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        /* 當沒有在旋轉時，加入一個自動擺動的容器效果 */
-        .card-idle {
-            animation: breatheRotation 6s ease-in-out infinite;
+            will-change: transform;
         }
 
         .card-image {
@@ -64,8 +67,10 @@
 </head>
 <body>
 
-    <div class="card-wrapper card-idle" id="card">
-        <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+    <div class="idle-container">
+        <div class="card-wrapper" id="card">
+            <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+        </div>
     </div>
 
     <div class="text-container">
@@ -90,12 +95,11 @@
         let sparkleCount = 0;
 
         card.addEventListener('click', (e) => {
-            // 點擊時暫時移除自動呼吸動畫，避免衝突
-            card.classList.remove('card-idle');
-
+            // 點擊旋轉 360 度 (發生在內層，不會被外層動畫覆蓋)
             degree += 360;
             card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
 
+            // 切換內容
             setTimeout(() => {
                 currentIndex = (currentIndex + 1) % contents.length;
                 cardImg.src = contents[currentIndex].img;
@@ -103,11 +107,42 @@
                 subTitle.innerText = contents[currentIndex].t2;
             }, 250);
 
-            // 大旋轉結束後，把自動呼吸加回來，但要保持目前的旋轉角度
-            setTimeout(() => {
-                // 如果需要轉完後繼續呼吸，這裡可以再加邏輯，
-                // 但為了穩定性，目前設計為點擊後維持在該角度，或者你希望它繼續擺動？
-            }, 1200);
-
             createFirework(e.clientX, e.clientY);
         });
+
+        // ✨ 煙火邏輯 (維持物理參數)
+        function createFirework(x, y) {
+            for (let i = 0; i < 20; i++) {
+                if (sparkleCount >= 50) break;
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = '✨';
+                document.body.appendChild(sparkle);
+                sparkleCount++;
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 2.5 + Math.random() * 5; 
+                let vx = Math.cos(angle) * velocity;
+                let vy = Math.sin(angle) * velocity - 3; 
+                let posX = x;
+                let posY = y;
+                let opacity = 1;
+                let gravity = 0.2;
+
+                function animateSparkle() {
+                    posX += vx;
+                    posY += (vy + gravity);
+                    gravity += 0.35; 
+                    opacity -= 0.01; 
+                    sparkle.style.left = posX + 'px';
+                    sparkle.style.top = posY + 'px';
+                    sparkle.style.opacity = opacity;
+                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
+                    if (opacity > 0) { requestAnimationFrame(animateSparkle); } else { sparkle.remove(); sparkleCount--; }
+                }
+                animateSparkle();
+            }
+        }
+    </script>
+</body>
+</html>
