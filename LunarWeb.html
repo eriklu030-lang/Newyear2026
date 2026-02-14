@@ -61,25 +61,26 @@ body {
     pointer-events: none;
 }
 
+/* 🔥 文字容器：控制與上方卡片的距離 */
 .text-container {
-    margin-top: 2vh; /* 稍微縮小容器與卡片的距離 */
+    margin-top: calc(3vh + 100px); /* 在原本的 3vh 基礎上再加 100px */
     text-align: center;
     color: white;
     font-family: sans-serif;
     pointer-events: none;
 }
 
-/* 新增以下這段來精確控制間距 */
+/* 確保標題間距緊湊 */
 .text-container h1 {
     margin: 0; 
     font-size: 2rem;
-    line-height: 1.2; /* 控制行高 */
+    line-height: 1.2;
 }
 
+/* 確保副標題與主標題靠近 */
 .text-container p {
-    margin: 5px 0 0 0; /* 只給上方 5px 的間距，你可以根據喜好調整這個數字 */
+    margin: 5px 0 0 0; 
     opacity: 0.8;
-    font-size: 1rem;
 }
 
 .sparkle {
