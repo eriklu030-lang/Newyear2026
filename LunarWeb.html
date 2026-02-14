@@ -17,7 +17,17 @@
             perspective: 2000px;
         }
 
-        /* 1. 外層容器：負責自動呼吸擺動 */
+        /* 1. 最外層：滑鼠跟隨層 */
+        .mouse-tracker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out; /* 讓滑鼠跟隨有一點點緩衝 */
+            will-change: transform;
+        }
+
+        /* 2. 中間層：自動呼吸層 */
         .idle-container {
             display: flex;
             justify-content: center;
@@ -32,7 +42,7 @@
             100% { transform: rotateY(-5deg) rotateX(2deg); }
         }
 
-        /* 2. 內層卡片：負責點擊 360 度旋轉 */
+        /* 3. 最內層：點擊旋轉層 */
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
@@ -67,9 +77,11 @@
 </head>
 <body>
 
-    <div class="idle-container">
-        <div class="card-wrapper" id="card">
-            <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+    <div class="mouse-tracker" id="mouse-layer">
+        <div class="idle-container">
+            <div class="card-wrapper" id="card">
+                <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+            </div>
         </div>
     </div>
 
@@ -79,6 +91,7 @@
     </div>
 
     <script>
+        const mouseLayer = document.getElementById('mouse-layer');
         const card = document.getElementById('card');
         const cardImg = document.getElementById('card-img');
         const mainTitle = document.getElementById('main-title');
@@ -94,12 +107,18 @@
         let currentIndex = 0;
         let sparkleCount = 0;
 
-        card.addEventListener('click', (e) => {
-            // 點擊旋轉 360 度 (發生在內層，不會被外層動畫覆蓋)
-            degree += 360;
-            card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
+        // 滑鼠跟隨邏輯 (作用在最外層)
+        document.addEventListener('mousemove', (e) => {
+            const xVal = (e.clientX - window.innerWidth / 2) / 30;
+            const yVal = (e.clientY - window.innerHeight / 2) / 30;
+            mouseLayer.style.transform = `rotateY(${xVal}deg) rotateX(${-yVal}deg)`;
+        });
 
-            // 切換內容
+        // 點擊旋轉邏輯 (作用在最內層)
+        card.addEventListener('click', (e) => {
+            degree += 360;
+            card.style.transform = `rotateY(${degree}deg)`;
+
             setTimeout(() => {
                 currentIndex = (currentIndex + 1) % contents.length;
                 cardImg.src = contents[currentIndex].img;
@@ -110,39 +129,8 @@
             createFirework(e.clientX, e.clientY);
         });
 
-        // ✨ 煙火邏輯 (維持物理參數)
         function createFirework(x, y) {
             for (let i = 0; i < 20; i++) {
                 if (sparkleCount >= 50) break;
                 const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.innerHTML = '✨';
-                document.body.appendChild(sparkle);
-                sparkleCount++;
-
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 2.5 + Math.random() * 5; 
-                let vx = Math.cos(angle) * velocity;
-                let vy = Math.sin(angle) * velocity - 3; 
-                let posX = x;
-                let posY = y;
-                let opacity = 1;
-                let gravity = 0.2;
-
-                function animateSparkle() {
-                    posX += vx;
-                    posY += (vy + gravity);
-                    gravity += 0.35; 
-                    opacity -= 0.01; 
-                    sparkle.style.left = posX + 'px';
-                    sparkle.style.top = posY + 'px';
-                    sparkle.style.opacity = opacity;
-                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
-                    if (opacity > 0) { requestAnimationFrame(animateSparkle); } else { sparkle.remove(); sparkleCount--; }
-                }
-                animateSparkle();
-            }
-        }
-    </script>
-</body>
-</html>
+                sparkle.className =
