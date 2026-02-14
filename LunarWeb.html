@@ -20,8 +20,9 @@
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
-            /* 使用 CSS transition 來處理「回正」和「旋轉」，這比 JS 模擬穩定 */
-            transition: transform 0.1s ease-out; 
+            /* 核心：只使用最穩定的 CSS 旋轉邏輯 */
+            transform: rotateY(0deg) translateZ(0); 
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
             will-change: transform;
         }
@@ -73,54 +74,32 @@
             { img: 'card_image_3.png', t1: '心想事成 · 福氣滿滿', t2: 'May All Your Wishes Come True' }
         ];
 
+        let degree = 0;
         let currentIndex = 0;
         let sparkleCount = 0;
-        let degree = 0;
-        let isSpinning = false; // 鎖定狀態開關
 
-        // 1. 滑鼠跟隨效果
-        document.addEventListener('mousemove', (e) => {
-            if (isSpinning) return; // 如果正在旋轉，不准滑鼠干擾
-
-            const xOffset = (e.clientX - window.innerWidth / 2) / 20;
-            const yOffset = (e.clientY - window.innerHeight / 2) / 20;
-            
-            // 平時隨滑鼠微調
-            card.style.transition = "transform 0.1s ease-out";
-            card.style.transform = `rotateY(${degree + xOffset}deg) rotateX(${-yOffset}deg) translateZ(0)`;
-        });
-
-        // 2. 點擊旋轉門
         card.addEventListener('click', (e) => {
-            if (isSpinning) return; // 防止連點打架
-
-            isSpinning = true;
+            // 1. 旋轉門效果：每次點擊累加 360 度
             degree += 360;
+            card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
 
-            // 啟動大旋轉，時間設為 1.2s 確保優雅
-            card.style.transition = "transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            card.style.transform = `rotateY(${degree}deg) rotateX(0deg) translateZ(0)`;
-
-            // 在旋轉過程中切換圖片
+            // 2. 內容切換：在轉到一半時悄悄更換
             setTimeout(() => {
                 currentIndex = (currentIndex + 1) % contents.length;
                 cardImg.src = contents[currentIndex].img;
                 mainTitle.innerText = contents[currentIndex].t1;
                 subTitle.innerText = contents[currentIndex].t2;
-            }, 300);
+            }, 250);
 
-            // 旋轉結束後，解鎖讓滑鼠重新控制
-            setTimeout(() => {
-                isSpinning = false;
-            }, 1200);
-
+            // 3. ✨ 煙火噴發 (嚴格遵守物理參數)
             createFirework(e.clientX, e.clientY);
         });
 
-        // ✨ 煙火邏輯 (維持你要求的物理參數)
         function createFirework(x, y) {
-            for (let i = 0; i < 20; i++) {
-                if (sparkleCount >= 50) break;
+            const amount = 20; 
+            for (let i = 0; i < amount; i++) {
+                if (sparkleCount >= 50) break; 
+                
                 const sparkle = document.createElement('div');
                 sparkle.className = 'sparkle';
                 sparkle.innerHTML = '✨';
@@ -128,24 +107,31 @@
                 sparkleCount++;
 
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = 2.5 + Math.random() * 5; 
+                const velocity = 2.5 + Math.random() * 5; // 速度減半
                 let vx = Math.cos(angle) * velocity;
                 let vy = Math.sin(angle) * velocity - 3; 
                 let posX = x;
                 let posY = y;
                 let opacity = 1;
-                let gravity = 0.2;
+                let gravity = 0.2; 
 
                 function animateSparkle() {
                     posX += vx;
                     posY += (vy + gravity);
-                    gravity += 0.35; 
-                    opacity -= 0.01; 
+                    gravity += 0.35; // 加強重力感
+                    opacity -= 0.01; // 顯示時間兩倍
+
                     sparkle.style.left = posX + 'px';
                     sparkle.style.top = posY + 'px';
                     sparkle.style.opacity = opacity;
                     sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
-                    if (opacity > 0) { requestAnimationFrame(animateSparkle); } else { sparkle.remove(); sparkleCount--; }
+
+                    if (opacity > 0) {
+                        requestAnimationFrame(animateSparkle);
+                    } else {
+                        sparkle.remove();
+                        sparkleCount--;
+                    }
                 }
                 animateSparkle();
             }
