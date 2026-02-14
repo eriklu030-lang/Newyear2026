@@ -27,7 +27,7 @@
             perspective: 2000px;
         }
 
-        /* 🔥 新增：Click Me 提示文字樣式 */
+        /* 🔥 Click Me 提示文字：現在設為絕對定位，相對於卡片中心 */
         #click-hint {
             position: absolute;
             top: 50%;
@@ -35,13 +35,14 @@
             transform: translate(-50%, -50%);
             color: white;
             font-family: sans-serif;
-            font-size: 1.2rem;
-            opacity: 0.8; /* 透明度 80% */
-            pointer-events: none; /* 讓點擊穿透文字，點到後方的卡片 */
+            font-size: 1.5rem;
+            opacity: 0.8;
+            pointer-events: none; /* 點擊穿透 */
             z-index: 100;
             transition: opacity 0.5s ease;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            text-shadow: 0 0 15px rgba(0,0,0,1); /* 增加黑影確保在紅卡上清晰 */
+            white-space: nowrap;
         }
 
         .tilt-layer {
@@ -73,6 +74,7 @@
             transform-style: preserve-3d;
             transition: transform 1.2s cubic-bezier(0.2,0.8,0.2,1);
             will-change: transform;
+            position: relative; /* 🔥 讓提示文字以此為基準對齊 */
         }
 
         .card-image {
@@ -113,11 +115,10 @@
 
 <body>
 
-<div id="click-hint">Click me</div>
-
 <div class="tilt-layer" id="tilt">
     <div class="breathe-layer">
         <div class="spin-layer" id="card">
+            <div id="click-hint">Click me</div> 
             <img src="card_image.png" id="card-img" class="card-image">
         </div>
     </div>
@@ -134,7 +135,7 @@ const card = document.getElementById('card');
 const cardImg = document.getElementById('card-img');
 const mainTitle = document.getElementById('main-title');
 const subTitle = document.getElementById('sub-title');
-const clickHint = document.getElementById('click-hint'); // 取得提示文字
+const clickHint = document.getElementById('click-hint');
 
 const contents = [
     { img:'card_image.png', t1:'Erik 祝大家新年快樂', t2:'Happy Lunar New Year' },
@@ -146,6 +147,7 @@ let degree = 0;
 let currentIndex = 0;
 let sparkleCount = 0;
 
+/* 滑鼠傾斜偵測 */
 document.addEventListener('mousemove', (e) => {
     const x = (e.clientX - window.innerWidth / 2) / 25;
     const y = (e.clientY - window.innerHeight / 2) / 25;
@@ -153,10 +155,11 @@ document.addEventListener('mousemove', (e) => {
     tilt.style.setProperty('--mouseY', -y + 'deg');
 });
 
+/* 點擊觸發事件 */
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('sparkle')) return;
 
-    // 🔥 新增：點擊後隱藏提示文字
+    // 點擊後隱藏提示文字
     if (clickHint) {
         clickHint.style.display = 'none';
     }
@@ -174,6 +177,7 @@ document.addEventListener('click', (e) => {
     createFirework(e.clientX, e.clientY);
 });
 
+/* 煙火特效 */
 function createFirework(x,y) {
     for(let i=0;i<20;i++){
         if(sparkleCount>=60) break;
