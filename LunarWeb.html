@@ -6,10 +6,8 @@
     <title>Erik 的新年祝福</title>
     <style>
         :root {
-            /* 這裡設定背景顏色：建議先用深灰色，等圖片放上去後，
-               你可以根據圖片主色調調整成更深的顏色 (例如深紅或深金) */
-            --bg-color: #1a1a1a; 
-            --text-color: #ffffff;
+            --bg-color: #0d0202; 
+            --text-color: #f5f5f5;
         }
 
         body {
@@ -22,61 +20,74 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            overflow: hidden; /* 防止滾動影響視覺 */
-            perspective: 1000px; /* 建立 3D 空間透視 */
+            overflow: hidden; 
+            perspective: 1000px;
         }
 
-        /* 3D 卡片容器 */
+        /* 3D 卡片容器：高度佔 60% */
         .card-wrapper {
-            /* 調整寬度與高度，確保上下保留空間 */
-            height: 60vh;        /* 高度佔螢幕 60%，也就是上下各留 20% */
-            width: auto;         /* 寬度根據比例自動調整 */
-            aspect-ratio: auto;  /* 讓它根據圖片原始比例顯示 */
-            
+            height: 60vh;
+            width: auto;
             display: flex;
             justify-content: center;
             align-items: center;
-
             transition: transform 0.1s ease-out;
             transform-style: preserve-3d;
-            cursor: pointer;
             z-index: 2;
         }
 
         .card-image {
-            height: 100%;        /* 讓圖片填滿 wrapper 的高度 (即 60vh) */
-            width: auto;         /* 寬度等比例縮放 */
+            height: 100%;
+            width: auto;
             border-radius: 15px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             pointer-events: none;
         }
 
-        /* 文字區塊 */
+        /* 文字區塊：寬度限制在 80% 內並置中 */
         .text-container {
-            margin-top: 40px;
+            margin-top: 5vh;
             text-align: center;
             color: var(--text-color);
+            width: 80vw; /* 限制寬度最大 80% */
+            max-width: 800px;
             z-index: 1;
         }
 
+        /* 使用視窗寬度單位 (vw) 讓字體隨螢幕縮放 */
         .title {
-            font-size: 2.5rem;
+            font-size: clamp(1.5rem, 6vw, 2.5rem); /* 最小 1.5rem，隨寬度變動，最大 2.5rem */
             font-weight: bold;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            margin-bottom: 1vh;
+            white-space: nowrap;
         }
 
         .subtitle {
-            font-size: 1.5rem;
+            font-size: clamp(1rem, 4vw, 1.5rem);
             opacity: 0.8;
             font-weight: 300;
+        }
+
+        /* iOS 陀螺儀啟動按鈕 */
+        #permission-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
 
     <div class="card-wrapper" id="card">
-        <img src="./card_image.png" alt="Erik's New Year Card" class="card-image">
+        <img src="card_image.png" alt="Erik's New Year Card" class="card-image">
     </div>
 
     <div class="text-container">
@@ -84,30 +95,60 @@
         <div class="subtitle">Happy Lunar New Year</div>
     </div>
 
+    <button id="permission-btn">點擊開啟手機動態效果</button>
+
     <script>
         const card = document.getElementById('card');
-        const root = document.documentElement;
+        const btn = document.getElementById('permission-btn');
 
+        // 滑鼠移動效果 (電腦端)
         document.addEventListener('mousemove', (e) => {
-            // 計算滑鼠相對於視窗中心點的偏移量
-            let xAxis = (window.innerWidth / 2 - e.pageX) / 15; // 左右旋轉係數
-            let yAxis = (window.innerHeight / 2 - e.pageY) / 25; // 上下旋轉係數
-
-            // 限制旋轉角度：左右最大 30 度，上下最大 10 度
-            const rotateY = Math.max(Math.min(xAxis, 30), -30);
-            const rotateX = Math.max(Math.min(-yAxis, 10), -10);
-
-            card.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 15;
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            applyRotation(xAxis, yAxis);
         });
 
-        // 當滑鼠離開時，卡片緩慢回正
+        // 陀螺儀效果 (手機端)
+        function handleOrientation(event) {
+            // beta: 上下傾斜 (-180 to 180), gamma: 左右傾斜 (-90 to 90)
+            let yAxis = event.beta;  
+            let xAxis = event.gamma; 
+
+            // 調整靈敏度與方向
+            let rotateY = Math.max(Math.min(xAxis, 30), -30);
+            let rotateX = Math.max(Math.min(yAxis - 45, 10), -10); // 假設手機握持角度約 45 度
+
+            card.style.transform = `rotateY(${rotateY}deg) rotateX(${-rotateX}deg)`;
+        }
+
+        function applyRotation(x, y) {
+            const rotateY = Math.max(Math.min(x, 30), -30);
+            const rotateX = Math.max(Math.min(-y, 10), -10);
+            card.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+        }
+
+        // 請求 iOS 權限
+        btn.addEventListener('click', () => {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            btn.style.display = 'none';
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // 非 iOS 13+ 設備直接執行
+                window.addEventListener('deviceorientation', handleOrientation);
+                btn.style.display = 'none';
+            }
+        });
+
+        // 回正
         document.addEventListener('mouseleave', () => {
             card.style.transition = "transform 0.5s ease";
             card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-        });
-
-        document.addEventListener('mouseenter', () => {
-            card.style.transition = "none";
         });
     </script>
 </body>
