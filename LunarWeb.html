@@ -20,9 +20,8 @@
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
-            /* 核心補強：translateZ(0) 確保動態啟動 */
-            transform: rotateY(0deg) translateZ(0); 
-            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            /* 移除 transition 避免與 JS 實時跟隨衝突，改由 JS 控制平滑度 */
+            transform: rotateY(0deg) rotateX(0deg) translateZ(0); 
             transform-style: preserve-3d;
             will-change: transform;
         }
@@ -41,7 +40,6 @@
             color: white;
             font-family: sans-serif;
             pointer-events: none;
-            transition: opacity 0.3s;
         }
 
         .sparkle {
@@ -58,7 +56,7 @@
         <img src="card_image.png" id="card-img" alt="Card" class="card-image">
     </div>
 
-    <div class="text-container" id="text-box">
+    <div class="text-container">
         <h1 id="main-title" style="margin: 0; font-size: 2rem;">Erik 祝大家新年快樂</h1>
         <p id="sub-title" style="opacity: 0.8;">Happy Lunar New Year</p>
     </div>
@@ -75,68 +73,18 @@
             { img: 'card_image_3.png', t1: '心想事成 · 福氣滿滿', t2: 'May All Your Wishes Come True' }
         ];
 
-        let degree = 0;
         let currentIndex = 0;
         let sparkleCount = 0;
 
-        card.addEventListener('click', (e) => {
-            // 1. 旋轉邏輯：每次累加 360，最穩定的做法
-            degree += 360;
-            card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
+        // 動態變數
+        let targetRotateY = 0; // 目標 Y 軸角度 (包含累加旋轉)
+        let targetRotateX = 0; // 目標 X 軸角度
+        let currentRotateY = 0; // 當前 Y 軸角度 (平滑插值用)
+        let currentRotateX = 0; // 當前 X 軸角度 (平滑插值用)
+        let baseRotateY = 0; // 點擊帶來的 360 度基數
 
-            // 2. 切換圖片與文字
-            currentIndex = (currentIndex + 1) % contents.length;
-            // 延遲一下下切換圖片，讓卡片轉到側面時才換圖，效果更自然
-            setTimeout(() => {
-                cardImg.src = contents[currentIndex].img;
-                mainTitle.innerText = contents[currentIndex].t1;
-                subTitle.innerText = contents[currentIndex].t2;
-            }, 300);
-
-            // 3. 噴發 ✨ (限制 50 個)
-            createFirework(e.clientX, e.clientY);
-        });
-
-        function createFirework(x, y) {
-            for (let i = 0; i < 20; i++) {
-                if (sparkleCount >= 50) break;
-                
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.innerHTML = '✨';
-                document.body.appendChild(sparkle);
-                sparkleCount++;
-
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 2 + Math.random() * 4; 
-                let vx = Math.cos(angle) * velocity;
-                let vy = Math.sin(angle) * velocity - 2; 
-                let posX = x;
-                let posY = y;
-                let opacity = 1;
-                let gravity = 0.15;
-
-                function animateSparkle() {
-                    posX += vx;
-                    posY += (vy + gravity);
-                    gravity += 0.2; 
-                    opacity -= 0.01; 
-
-                    sparkle.style.left = posX + 'px';
-                    sparkle.style.top = posY + 'px';
-                    sparkle.style.opacity = opacity;
-                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
-
-                    if (opacity > 0) {
-                        requestAnimationFrame(animateSparkle);
-                    } else {
-                        sparkle.remove();
-                        sparkleCount--;
-                    }
-                }
-                animateSparkle();
-            }
-        }
-    </script>
-</body>
-</html>
+        // 1. 滑鼠移動：設定微調目標
+        document.addEventListener('mousemove', (e) => {
+            const xOffset = (e.clientX - window.innerWidth / 2) / 25;
+            const yOffset = (e.clientY - window.innerHeight / 2) / 25;
+    
