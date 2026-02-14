@@ -1,103 +1,193 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lunar New Year Card</title>
+<title>Erik's New Year Card</title>
 
 <style>
 body {
     margin: 0;
-    height: 100vh;
+    background: #0d0202;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    perspective: 2000px;
+}
+
+/* 🔥 滑鼠 + 呼吸 合成層 */
+.tilt-layer {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    overflow: hidden;
-    perspective: 1200px;
-}
-
-/* 卡片 */
-.spin-layer {
-    width: 60vh;
-    height: 60vh;
-    margin-top: 5vh;
+    align-items: center;
     transform-style: preserve-3d;
-    transition: transform 1s cubic-bezier(.25,.8,.25,1);
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+
+    transform:
+        rotateY(calc(var(--mouseX, 0deg) + var(--breathX, 0deg)))
+        rotateX(calc(var(--mouseY, 0deg) + var(--breathY, 0deg)));
 }
 
-.spin-layer img {
-    width: 100%;
+/* 🔥 呼吸只改變變數 */
+.breathe-layer {
+    transform-style: preserve-3d;
+    animation: breathe 6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0%   { --breathX: -4deg; --breathY: 2deg; }
+    50%  { --breathX: 4deg;  --breathY: -2deg; }
+    100% { --breathX: -4deg; --breathY: 2deg; }
+}
+
+/* 🔥 點擊旋轉層 */
+.spin-layer {
+    height: 60vh;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(0.2,0.8,0.2,1);
+    will-change: transform;
+}
+
+.card-image {
     height: 100%;
-    object-fit: cover;
-    border-radius: 20px;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    display: block;
     pointer-events: none;
 }
 
-/* 文字區塊 */
 .text-container {
-    position: absolute;
-    top: 80vh; /* 60vh 卡片 + 中間 20vh */
-    left: 50%;
-    transform: translateX(-50%);
+    margin-top: 3vh;
     text-align: center;
     color: white;
     font-family: sans-serif;
     pointer-events: none;
 }
 
-#main-title {
-    margin: 0;
-    font-size: 2rem;
-    line-height: 1;
-}
-
-#sub-title {
-    margin-top: 0.5em; /* 上行高度的一半 */
-    opacity: 0.85;
-}
-
-/* 煙火 */
 .sparkle {
     position: fixed;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
     pointer-events: none;
-    animation: explode 600ms ease-out forwards;
-}
-
-@keyframes explode {
-    to {
-        transform: translate(var(--x), var(--y));
-        opacity: 0;
-    }
+    z-index: 999;
+    font-size: 24px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="spin-layer" id="card">
-    <img id="card-img" src="card_image.png">
+<div class="tilt-layer" id="tilt">
+    <div class="breathe-layer">
+        <div class="spin-layer" id="card">
+            <img src="card_image.png" id="card-img" class="card-image">
+        </div>
+    </div>
 </div>
 
 <div class="text-container">
-    <h1 id="main-title">Erik 祝大家新年快樂</h1>
-    <p id="sub-title">Happy Lunar New Year</p>
+    <h1 id="main-title" style="margin:0;font-size:2rem;">
+        Erik 祝大家新年快樂
+    </h1>
+    <p id="sub-title" style="opacity:0.8;">
+        Happy Lunar New Year
+    </p>
 </div>
 
 <script>
+const tilt = document.getElementById('tilt');
 const card = document.getElementById('card');
 const cardImg = document.getElementById('card-img');
 const mainTitle = document.getElementById('main-title');
 const subTitle = document.getElementById('sub-title');
 
-let degree = 0;
-let currentIndex = 0;
-
-/* 🔥 你的原始內容已完整加回 */
 const contents = [
     { img:'card_image.png', t1:'Erik 祝大家新年快樂', t2:'Happy Lunar New Year' },
     { img:'card_image_2.png', t1:'萬事如意 · 歲歲平安', t2:'Prosperity and Peace' },
-    { img:'card_image_3.png', t1:'心想事成 · 福氣滿
+    { img:'card_image_3.png', t1:'心想事成 · 福氣滿滿', t2:'May All Your Wishes Come True' }
+];
+
+let degree = 0;
+let currentIndex = 0;
+let sparkleCount = 0;
+
+/* 🔥 滑鼠傾斜 */
+document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX - window.innerWidth / 2) / 25;
+    const y = (e.clientY - window.innerHeight / 2) / 25;
+
+    tilt.style.setProperty('--mouseX', x + 'deg');
+    tilt.style.setProperty('--mouseY', -y + 'deg');
+});
+
+/* 🔥 整頁點擊都會翻轉 */
+document.addEventListener('click', (e) => {
+
+    if (e.target.classList.contains('sparkle')) return;
+
+    degree += 360;
+    card.style.transform = `rotateY(${degree}deg)`;
+
+    setTimeout(() => {
+        currentIndex = (currentIndex + 1) % contents.length;
+        cardImg.src = contents[currentIndex].img;
+        mainTitle.innerText = contents[currentIndex].t1;
+        subTitle.innerText = contents[currentIndex].t2;
+    }, 300);
+
+    createFirework(e.clientX, e.clientY);
+});
+
+/* 🔥 煙火 */
+function createFirework(x,y) {
+
+    for(let i=0;i<20;i++){
+        if(sparkleCount>=60) break;
+
+        const s = document.createElement('div');
+        s.className = 'sparkle';
+        s.innerHTML = '✨';
+        document.body.appendChild(s);
+        sparkleCount++;
+
+        const angle = Math.random()*Math.PI*2;
+        const speed = 3+Math.random()*5;
+
+        let vx = Math.cos(angle)*speed;
+        let vy = Math.sin(angle)*speed-3;
+
+        let px = x;
+        let py = y;
+        let opacity = 1;
+        let gravity = 0.2;
+
+        function animate(){
+            px += vx;
+            py += (vy+gravity);
+            gravity += 0.35;
+            opacity -= 0.012;
+
+            s.style.left = px+"px";
+            s.style.top = py+"px";
+            s.style.opacity = opacity;
+            s.style.transform = `scale(${opacity}) rotate(${px*0.5}deg)`;
+
+            if(opacity>0){
+                requestAnimationFrame(animate);
+            } else {
+                s.remove();
+                sparkleCount--;
+            }
+        }
+
+        animate();
+    }
+}
+</script>
+
+</body>
+</html>
+
