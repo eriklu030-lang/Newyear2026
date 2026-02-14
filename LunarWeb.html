@@ -1,95 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Erik's New Year Card</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erik's New Year Card</title>
 
-<style>
-body {
-    margin: 0;
-    background: #0d0202;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
-    perspective: 2000px;
-}
+    <meta property="og:title" content="Erik 祝大家新年快樂！" />
+    <meta property="og:description" content="點擊進入查看 Erik 的新年賀卡與祝福 ✨" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://eriklu030-lang.github.io/Newyear2026/LunarWeb.html" />
+    <meta property="og:image" content="https://eriklu030-lang.github.io/Newyear2026/card_image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image">
 
-/* 🔥 滑鼠 + 呼吸 合成層 */
-.tilt-layer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform-style: preserve-3d;
-    transition: transform 0.15s ease-out;
-    will-change: transform;
+    <style>
+        body {
+            margin: 0;
+            background: #0d0202;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            perspective: 2000px;
+        }
 
-    transform:
-        rotateY(calc(var(--mouseX, 0deg) + var(--breathX, 0deg)))
-        rotateX(calc(var(--mouseY, 0deg) + var(--breathY, 0deg)));
-}
+        /* 🔥 滑鼠 + 呼吸 合成層 */
+        .tilt-layer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out;
+            will-change: transform;
+            transform:
+                rotateY(calc(var(--mouseX, 0deg) + var(--breathX, 0deg)))
+                rotateX(calc(var(--mouseY, 0deg) + var(--breathY, 0deg)));
+        }
 
-/* 🔥 呼吸只改變變數 */
-.breathe-layer {
-    transform-style: preserve-3d;
-    animation: breathe 6s ease-in-out infinite;
-}
+        /* 🔥 呼吸只改變變數 */
+        .breathe-layer {
+            transform-style: preserve-3d;
+            animation: breathe 6s ease-in-out infinite;
+        }
 
-@keyframes breathe {
-    0%   { --breathX: -4deg; --breathY: 2deg; }
-    50%  { --breathX: 4deg;  --breathY: -2deg; }
-    100% { --breathX: -4deg; --breathY: 2deg; }
-}
+        @keyframes breathe {
+            0%   { --breathX: -4deg; --breathY: 2deg; }
+            50%  { --breathX: 4deg;  --breathY: -2deg; }
+            100% { --breathX: -4deg; --breathY: 2deg; }
+        }
 
-/* 🔥 點擊旋轉層 */
-.spin-layer {
-    height: 60vh;
-    cursor: pointer;
-    transform-style: preserve-3d;
-    transition: transform 1.2s cubic-bezier(0.2,0.8,0.2,1);
-    will-change: transform;
-}
+        /* 🔥 點擊旋轉層 */
+        .spin-layer {
+            height: 60vh;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.2,0.8,0.2,1);
+            will-change: transform;
+        }
 
-.card-image {
-    height: 100%;
-    border-radius: 15px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    display: block;
-    pointer-events: none;
-}
+        .card-image {
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            display: block;
+            pointer-events: none;
+        }
 
-/* 🔥 文字容器：控制與上方卡片的距離 */
-.text-container {
-    margin-top: calc(3vh + 40px); /* 在原本的 3vh 基礎上再加 100px */
-    text-align: center;
-    color: white;
-    font-family: sans-serif;
-    pointer-events: none;
-}
+        /* 🔥 文字容器 */
+        .text-container {
+            margin-top: calc(3vh + 40px);
+            text-align: center;
+            color: white;
+            font-family: sans-serif;
+            pointer-events: none;
+        }
 
-/* 確保標題間距緊湊 */
-.text-container h1 {
-    margin: 0; 
-    font-size: 2rem;
-    line-height: 1.2;
-}
+        .text-container h1 {
+            margin: 0; 
+            font-size: 2rem;
+            line-height: 1.2;
+        }
 
-/* 確保副標題與主標題靠近 */
-.text-container p {
-    margin: 5px 0 0 0; 
-    opacity: 0.8;
-}
+        .text-container p {
+            margin: 5px 0 0 0; 
+            opacity: 0.8;
+        }
 
-.sparkle {
-    position: fixed;
-    pointer-events: none;
-    z-index: 999;
-    font-size: 24px;
-}
-</style>
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 24px;
+        }
+    </style>
 </head>
 
 <body>
@@ -103,10 +109,10 @@ body {
 </div>
 
 <div class="text-container">
-    <h1 id="main-title" style="margin:0;font-size:2rem;">
+    <h1 id="main-title">
         Erik 祝大家新年快樂
     </h1>
-    <p id="sub-title" style="opacity:0.8;">
+    <p id="sub-title">
         Happy Lunar New Year
     </p>
 </div>
@@ -137,9 +143,8 @@ document.addEventListener('mousemove', (e) => {
     tilt.style.setProperty('--mouseY', -y + 'deg');
 });
 
-/* 🔥 整頁點擊都會翻轉 */
+/* 🔥 整頁點擊翻轉 */
 document.addEventListener('click', (e) => {
-
     if (e.target.classList.contains('sparkle')) return;
 
     degree += 360;
@@ -155,9 +160,8 @@ document.addEventListener('click', (e) => {
     createFirework(e.clientX, e.clientY);
 });
 
-/* 🔥 煙火 */
+/* 🔥 煙火腳本 */
 function createFirework(x,y) {
-
     for(let i=0;i<20;i++){
         if(sparkleCount>=60) break;
 
@@ -196,7 +200,6 @@ function createFirework(x,y) {
                 sparkleCount--;
             }
         }
-
         animate();
     }
 }
@@ -204,4 +207,3 @@ function createFirework(x,y) {
 
 </body>
 </html>
-
