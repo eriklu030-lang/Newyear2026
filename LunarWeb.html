@@ -14,22 +14,23 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
-            perspective: 2000px; /* 3D 透視 */
+            perspective: 2000px;
         }
 
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
-            /* 強制硬體加速，防止動畫不回饋 */
+            /* 核心補強：translateZ(0) 確保動態啟動 */
             transform: rotateY(0deg) translateZ(0); 
-            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-style: preserve-3d;
+            will-change: transform;
         }
 
         .card-image {
             height: 100%;
             border-radius: 15px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             pointer-events: none;
             display: block;
         }
@@ -40,29 +41,102 @@
             color: white;
             font-family: sans-serif;
             pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
 
     <div class="card-wrapper" id="card">
-        <img src="card_image.png" alt="Card" class="card-image">
+        <img src="card_image.png" id="card-img" alt="Card" class="card-image">
     </div>
 
-    <div class="text-container">
-        <h1 style="margin: 0; font-size: 2rem;">Erik 祝大家新年快樂</h1>
-        <p style="opacity: 0.8;">Happy Lunar New Year</p>
+    <div class="text-container" id="text-box">
+        <h1 id="main-title" style="margin: 0; font-size: 2rem;">Erik 祝大家新年快樂</h1>
+        <p id="sub-title" style="opacity: 0.8;">Happy Lunar New Year</p>
     </div>
 
     <script>
         const card = document.getElementById('card');
-        let degree = 0;
+        const cardImg = document.getElementById('card-img');
+        const mainTitle = document.getElementById('main-title');
+        const subTitle = document.getElementById('sub-title');
 
-        card.addEventListener('click', () => {
-            // 每次點擊增加 360 度，確保瀏覽器偵測到數值變化
+        const contents = [
+            { img: 'card_image.png', t1: 'Erik 祝大家新年快樂', t2: 'Happy Lunar New Year' },
+            { img: 'card_image_2.png', t1: '萬事如意 · 歲歲平安', t2: 'Prosperity and Peace' },
+            { img: 'card_image_3.png', t1: '心想事成 · 福氣滿滿', t2: 'May All Your Wishes Come True' }
+        ];
+
+        let degree = 0;
+        let currentIndex = 0;
+        let sparkleCount = 0;
+
+        card.addEventListener('click', (e) => {
+            // 1. 旋轉邏輯：每次累加 360，最穩定的做法
             degree += 360;
             card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
+
+            // 2. 切換圖片與文字
+            currentIndex = (currentIndex + 1) % contents.length;
+            // 延遲一下下切換圖片，讓卡片轉到側面時才換圖，效果更自然
+            setTimeout(() => {
+                cardImg.src = contents[currentIndex].img;
+                mainTitle.innerText = contents[currentIndex].t1;
+                subTitle.innerText = contents[currentIndex].t2;
+            }, 300);
+
+            // 3. 噴發 ✨ (限制 50 個)
+            createFirework(e.clientX, e.clientY);
         });
+
+        function createFirework(x, y) {
+            for (let i = 0; i < 20; i++) {
+                if (sparkleCount >= 50) break;
+                
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = '✨';
+                document.body.appendChild(sparkle);
+                sparkleCount++;
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 2 + Math.random() * 4; 
+                let vx = Math.cos(angle) * velocity;
+                let vy = Math.sin(angle) * velocity - 2; 
+                let posX = x;
+                let posY = y;
+                let opacity = 1;
+                let gravity = 0.15;
+
+                function animateSparkle() {
+                    posX += vx;
+                    posY += (vy + gravity);
+                    gravity += 0.2; 
+                    opacity -= 0.01; 
+
+                    sparkle.style.left = posX + 'px';
+                    sparkle.style.top = posY + 'px';
+                    sparkle.style.opacity = opacity;
+                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
+
+                    if (opacity > 0) {
+                        requestAnimationFrame(animateSparkle);
+                    } else {
+                        sparkle.remove();
+                        sparkleCount--;
+                    }
+                }
+                animateSparkle();
+            }
+        }
     </script>
 </body>
 </html>
