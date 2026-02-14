@@ -21,20 +21,18 @@
             background-color: var(--bg-color);
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
             overflow: hidden; 
-            perspective: 1500px; /* 增加透視感讓旋轉更立體 */
+            perspective: 2000px;
             touch-action: manipulation;
         }
 
         .card-wrapper {
             height: 60vh;
-            width: auto;
             display: flex;
             justify-content: center;
             align-items: center;
             transform-style: preserve-3d;
             z-index: 2;
             cursor: pointer;
-            will-change: transform; /* 優化效能 */
         }
 
         .card-image {
@@ -52,113 +50,18 @@
             text-align: center;
             color: var(--text-color);
             width: 80vw;
-            z-index: 1;
             pointer-events: none;
         }
 
-        .title {
-            font-size: clamp(1.2rem, 6vw, 2.2rem);
-            font-weight: bold;
-            margin-bottom: 1vh;
-        }
-
-        .subtitle {
-            font-size: clamp(0.9rem, 4vw, 1.3rem);
-            opacity: 0.8;
-            font-weight: 300;
-        }
+        .title { font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: bold; margin-bottom: 1vh; }
+        .subtitle { font-size: clamp(0.9rem, 4vw, 1.3rem); opacity: 0.8; font-weight: 300; }
 
         .sparkle {
             position: fixed;
             pointer-events: none;
             z-index: 999;
             font-size: 24px;
-            user-select: none;
         }
     </style>
 </head>
 <body>
-
-    <div class="card-wrapper" id="card">
-        <img src="card_image.png" id="card-img" alt="Erik's New Year Card" class="card-image">
-    </div>
-
-    <div class="text-container">
-        <div class="title">Erik 祝大家新年快樂</div>
-        <div class="subtitle">Happy Lunar New Year</div>
-    </div>
-
-    <script>
-        const card = document.getElementById('card');
-        const cardImg = document.getElementById('card-img');
-        const images = ['card_image.png', 'card_image_2.png', 'card_image_3.png'];
-        
-        let currentIndex = 0;
-        let permissionGranted = false;
-        
-        // 旋轉相關變數
-        let currentRotation = 0;
-        let rotationVelocity = 0;
-        const friction = 0.96; // 摩擦力，數值越小停得越快
-        const maxVelocity = 12; // 最高速度：約半秒轉一圈 (60fps * 12 = 720度/秒)
-
-        // Emoji 數量限制
-        let sparkleCount = 0;
-        const maxSparkles = 50;
-
-        // 點擊事件
-        card.addEventListener('click', (e) => {
-            // 限制 Emoji 產生
-            if (sparkleCount < maxSparkles) {
-                createFirework(e.clientX, e.clientY);
-            }
-            
-            // 切換圖片
-            currentIndex = (currentIndex + 1) % images.length;
-            cardImg.src = images[currentIndex];
-
-            // 增加旋轉速度
-            // 點擊一次增加 6 度/幀的初速，累積最高不超過 maxVelocity
-            rotationVelocity = Math.min(rotationVelocity + 6, maxVelocity);
-
-            // 請求權限
-            if (!permissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission().then(state => {
-                    if (state === 'granted') permissionGranted = true;
-                });
-            }
-        });
-
-        // 物理旋轉主迴圈
-        function updateRotation() {
-            if (Math.abs(rotationVelocity) > 0.1) {
-                currentRotation += rotationVelocity;
-                rotationVelocity *= friction; // 模擬減速
-            } else {
-                rotationVelocity = 0;
-            }
-
-            // 這裡保留了滑鼠/陀螺儀的微調空間，將旋轉門角度與互動角度結合
-            // 目前先以旋轉門主軸 (Y軸) 為主
-            card.style.transform = `rotateY(${currentRotation}deg)`;
-            
-            requestAnimationFrame(updateRotation);
-        }
-        updateRotation();
-
-        // ✨ Emoji 煙火特效 (優化物理與數量限制)
-        function createFirework(x, y) {
-            const amount = 20;
-            for (let i = 0; i < amount; i++) {
-                if (sparkleCount >= maxSparkles) return; // 嚴格限制總數
-
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.innerHTML = '✨';
-                document.body.appendChild(sparkle);
-                sparkleCount++;
-
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = 2.5 + Math.random() * 5; 
-                const vx = Math.cos(angle) * velocity;
-                const vy = Math
