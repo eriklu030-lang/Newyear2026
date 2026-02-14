@@ -25,14 +25,17 @@
             touch-action: manipulation;
         }
 
+        /* 確保容器有固定高度，避免消失 */
         .card-wrapper {
             height: 60vh;
+            min-height: 300px;
             display: flex;
             justify-content: center;
             align-items: center;
             transform-style: preserve-3d;
             z-index: 2;
             cursor: pointer;
+            transition: opacity 0.5s ease;
         }
 
         .card-image {
@@ -43,6 +46,7 @@
             pointer-events: none;
             user-select: none;
             -webkit-user-drag: none;
+            display: block; /* 確保圖片是塊級元素 */
         }
 
         .text-container {
@@ -51,10 +55,11 @@
             color: var(--text-color);
             width: 80vw;
             pointer-events: none;
+            z-index: 1;
         }
 
-        .title { font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: bold; margin-bottom: 1vh; }
-        .subtitle { font-size: clamp(0.9rem, 4vw, 1.3rem); opacity: 0.8; font-weight: 300; }
+        .title { font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: bold; margin-bottom: 1vh; color: white; }
+        .subtitle { font-size: clamp(0.9rem, 4vw, 1.3rem); opacity: 0.8; font-weight: 300; color: white; }
 
         .sparkle {
             position: fixed;
@@ -65,3 +70,66 @@
     </style>
 </head>
 <body>
+
+    <div class="card-wrapper" id="card">
+        <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+    </div>
+
+    <div class="text-container">
+        <div class="title">Erik 祝大家新年快樂</div>
+        <div class="subtitle">Happy Lunar New Year</div>
+    </div>
+
+    <script>
+        const card = document.getElementById('card');
+        const cardImg = document.getElementById('card-img');
+        const images = ['card_image.png', 'card_image_2.png', 'card_image_3.png'];
+        
+        let currentIndex = 0;
+        let permissionGranted = false;
+        
+        // 初始化變數，確保不是 undefined
+        let autoRotation = 0;
+        let rotationVelocity = 0;
+        let tiltX = 0;
+        let tiltY = 0;
+        let sparkleCount = 0;
+
+        // 點擊事件
+        card.addEventListener('click', (e) => {
+            // 切換圖片
+            currentIndex = (currentIndex + 1) % images.length;
+            cardImg.src = images[currentIndex];
+
+            // 增加旋轉速度
+            rotationVelocity = Math.min(rotationVelocity + 8, 12);
+
+            // 噴 ✨
+            if (sparkleCount < 50) {
+                createFirework(e.clientX, e.clientY);
+            }
+
+            // iOS 權限請求
+            if (!permissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(state => {
+                    if (state === 'granted') {
+                        permissionGranted = true;
+                        window.addEventListener('deviceorientation', (event) => {
+                            // 修正數值抓取
+                            if(event.gamma) tiltX = Math.max(Math.min(event.gamma, 20), -20);
+                            if(event.beta) tiltY = Math.max(Math.min(event.beta - 50, 15), -15);
+                        });
+                    }
+                }).catch(err => console.error("Permission denied", err));
+            }
+        });
+
+        // 電腦端滑鼠微調
+        document.addEventListener('mousemove', (e) => {
+            if (permissionGranted) return;
+            // 避免數值過激
+            tiltX = (e.clientX - window.innerWidth / 2) / 40;
+            tiltY = (e.clientY - window.innerHeight / 2) / 40;
+        });
+
+        // 動畫
