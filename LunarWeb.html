@@ -7,7 +7,8 @@
     <style>
         :root {
             --bg-color: #0d0202; 
-            --text-color: #f5f5f5;
+            --text-color: #ffffff;
+            --accent-color: #d4af37; /* 金色 */
         }
 
         body {
@@ -24,7 +25,7 @@
             perspective: 1000px;
         }
 
-        /* 3D 卡片容器：高度佔 60% */
+        /* 3D 卡片容器 */
         .card-wrapper {
             height: 60vh;
             width: auto;
@@ -40,47 +41,48 @@
             height: 100%;
             width: auto;
             border-radius: 15px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             pointer-events: none;
         }
 
-        /* 文字區塊：寬度限制在 80% 內並置中 */
+        /* 文字區塊 */
         .text-container {
-            margin-top: 5vh;
+            margin-top: 3vh;
             text-align: center;
             color: var(--text-color);
-            width: 80vw; /* 限制寬度最大 80% */
-            max-width: 800px;
+            width: 80vw;
             z-index: 1;
         }
 
-        /* 使用視窗寬度單位 (vw) 讓字體隨螢幕縮放 */
         .title {
-            font-size: clamp(1.5rem, 6vw, 2.5rem); /* 最小 1.5rem，隨寬度變動，最大 2.5rem */
+            font-size: clamp(1.2rem, 6vw, 2.2rem);
             font-weight: bold;
             margin-bottom: 1vh;
-            white-space: nowrap;
+            letter-spacing: 1px;
         }
 
         .subtitle {
-            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-size: clamp(0.9rem, 4vw, 1.3rem);
             opacity: 0.8;
             font-weight: 300;
         }
 
-        /* iOS 陀螺儀啟動按鈕 */
+        /* 修正後的啟動按鈕：放在底部正中央且顏色醒目 */
         #permission-btn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 12px;
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: transparent;
+            color: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            z-index: 10;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
         }
     </style>
 </head>
@@ -95,28 +97,26 @@
         <div class="subtitle">Happy Lunar New Year</div>
     </div>
 
-    <button id="permission-btn">點擊開啟手機動態效果</button>
+    <button id="permission-btn">點擊開啟動態祝福</button>
 
     <script>
         const card = document.getElementById('card');
         const btn = document.getElementById('permission-btn');
 
-        // 滑鼠移動效果 (電腦端)
+        // 電腦端鼠標控制
         document.addEventListener('mousemove', (e) => {
             let xAxis = (window.innerWidth / 2 - e.pageX) / 15;
             let yAxis = (window.innerHeight / 2 - e.pageY) / 25;
             applyRotation(xAxis, yAxis);
         });
 
-        // 陀螺儀效果 (手機端)
+        // 手機端陀螺儀控制
         function handleOrientation(event) {
-            // beta: 上下傾斜 (-180 to 180), gamma: 左右傾斜 (-90 to 90)
-            let yAxis = event.beta;  
-            let xAxis = event.gamma; 
+            let yAxis = event.beta;  // 上下
+            let xAxis = event.gamma; // 左右
 
-            // 調整靈敏度與方向
             let rotateY = Math.max(Math.min(xAxis, 30), -30);
-            let rotateX = Math.max(Math.min(yAxis - 45, 10), -10); // 假設手機握持角度約 45 度
+            let rotateX = Math.max(Math.min(yAxis - 50, 10), -10); // 扣除一般拿手機的斜角
 
             card.style.transform = `rotateY(${rotateY}deg) rotateX(${-rotateX}deg)`;
         }
@@ -127,9 +127,9 @@
             card.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
         }
 
-        // 請求 iOS 權限
+        // 啟動按鈕與 iOS 權限請求
         btn.addEventListener('click', () => {
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
@@ -137,15 +137,18 @@
                             btn.style.display = 'none';
                         }
                     })
-                    .catch(console.error);
+                    .catch(e => {
+                        console.error(e);
+                        btn.innerText = "請允許感應器權限";
+                    });
             } else {
-                // 非 iOS 13+ 設備直接執行
+                // Android 或非 iOS 13 設備
                 window.addEventListener('deviceorientation', handleOrientation);
                 btn.style.display = 'none';
             }
         });
 
-        // 回正
+        // 滑鼠離開回正
         document.addEventListener('mouseleave', () => {
             card.style.transition = "transform 0.5s ease";
             card.style.transform = `rotateY(0deg) rotateX(0deg)`;
