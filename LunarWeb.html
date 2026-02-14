@@ -19,10 +19,9 @@
             align-items: center;
             min-height: 100vh;
             background-color: var(--bg-color);
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            font-family: sans-serif;
             overflow: hidden; 
             perspective: 2000px;
-            touch-action: manipulation;
         }
 
         .card-wrapper {
@@ -31,9 +30,14 @@
             justify-content: center;
             align-items: center;
             transform-style: preserve-3d;
-            z-index: 2;
             cursor: pointer;
-            will-change: transform;
+            /* 移除之前的 JS 動態干擾，改用 CSS 過渡 */
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 旋轉類別：當 JS 加入這個 class 時觸發旋轉 */
+        .spinning {
+            transform: rotateY(360deg);
         }
 
         .card-image {
@@ -42,106 +46,38 @@
             border-radius: 15px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             pointer-events: none;
-            user-select: none;
-            -webkit-user-drag: none;
         }
 
         .text-container {
             margin-top: 3vh;
             text-align: center;
             color: var(--text-color);
-            width: 80vw;
             pointer-events: none;
-            z-index: 1;
         }
 
-        .title { font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: bold; margin-bottom: 1vh; }
-        .subtitle { font-size: clamp(0.9rem, 4vw, 1.3rem); opacity: 0.8; font-weight: 300; }
-
-        .sparkle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 999;
-            font-size: 24px;
-        }
+        .title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2rem; opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div class="card-wrapper" id="card">
-        <img src="card_image.png" id="card-img" alt="Card" class="card-image">
+        <img src="card_image.png" alt="Card" class="card-image">
     </div>
 
     <div class="text-container">
-        <div id="main-title" class="title">Erik 祝大家新年快樂</div>
-        <div id="sub-title" class="subtitle">Happy Lunar New Year</div>
+        <div class="title">Erik 祝大家新年快樂</div>
+        <div class="subtitle">Happy Lunar New Year</div>
     </div>
 
     <script>
         const card = document.getElementById('card');
-        const cardImg = document.getElementById('card-img');
-        const mainTitle = document.getElementById('main-title');
-        const subTitle = document.getElementById('sub-title');
+        let isSpinning = false;
 
-        // 設定三張卡片對應的文字
-        const contents = [
-            { img: 'card_image.png', t1: 'Erik 祝大家新年快樂', t2: 'Happy Lunar New Year' },
-            { img: 'card_image_2.png', t1: '萬事如意 · 歲歲平安', t2: 'Prosperity and Peace' },
-            { img: 'card_image_3.png', t1: '心想事成 · 福氣滿滿', t2: 'May All Your Wishes Come True' }
-        ];
-        
-        let currentIndex = 0;
-        let permissionGranted = false;
-        
-        // 動畫變數初始化
-        let autoRotation = 0;
-        let rotationVelocity = 0;
-        let tiltX = 0;
-        let tiltY = 0;
-        let sparkleCount = 0;
+        card.addEventListener('click', () => {
+            if (isSpinning) return; // 防止重複點擊導致動畫崩潰
 
-        // 點擊事件
-        card.addEventListener('click', (e) => {
-            // 1. 切換內容
-            currentIndex = (currentIndex + 1) % contents.length;
-            cardImg.src = contents[currentIndex].img;
-            mainTitle.innerText = contents[currentIndex].t1;
-            subTitle.innerText = contents[currentIndex].t2;
-
-            // 2. 增加旋轉速度
-            rotationVelocity = Math.min(rotationVelocity + 10, 15);
-
-            // 3. 噴 ✨ (限制 50 個)
-            if (sparkleCount < 50) createFirework(e.clientX, e.clientY);
-
-            // 4. iOS 權限
-            if (!permissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission().then(state => {
-                    if (state === 'granted') {
-                        permissionGranted = true;
-                        window.addEventListener('deviceorientation', (event) => {
-                            if (event.gamma) tiltX = event.gamma * 0.5;
-                            if (event.beta) tiltY = (event.beta - 50) * 0.5;
-                        });
-                    }
-                });
-            }
-        });
-
-        // 電腦端滑鼠微調
-        document.addEventListener('mousemove', (e) => {
-            if (permissionGranted) return;
-            tiltX = (e.clientX - window.innerWidth / 2) / 30;
-            tiltY = (e.clientY - window.innerHeight / 2) / 30;
-        });
-
-        // 核心渲染迴圈
-        function render() {
-            autoRotation += rotationVelocity;
-            rotationVelocity *= 0.95; // 摩擦力
-
-            const finalY = (autoRotation + tiltX).toFixed(2);
-            const finalX = (-tiltY).toFixed(2);
+            isSpinning = true;
             
-            card.style.transform = `rotateY(${finalY}deg) rotateX
-        
+            // 讓卡片旋轉
+            card.style.transition = "transform 1s cubic-bezier(0.1, 0.7, 0.
