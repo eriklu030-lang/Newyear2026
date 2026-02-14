@@ -88,24 +88,20 @@
         <div class="subtitle">Happy Lunar New Year</div>
     </div>
 
-    <script>
+<script>
         const card = document.getElementById('card');
         const cardImg = document.getElementById('card-img');
         
-        // 設定圖片陣列（請確保 GitHub 上有這三個檔案）
         const images = ['card_image.png', 'card_image_2.png', 'card_image_3.png'];
         let currentIndex = 0;
         let permissionGranted = false;
 
-        // 1. 點擊卡片：噴射特效 + 切換圖片 + 啟動 iOS 權限
         card.addEventListener('click', (e) => {
             createFirework(e.clientX, e.clientY);
             
-            // 切換圖片
             currentIndex = (currentIndex + 1) % images.length;
             cardImg.src = images[currentIndex];
 
-            // 請求陀螺儀權限（僅 iOS 需要）
             if (!permissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
                     .then(state => {
@@ -120,7 +116,6 @@
             }
         });
 
-        // 2. ✨ Emoji 煙火特效
         function createFirework(x, y) {
             for (let i = 0; i < 20; i++) {
                 const sparkle = document.createElement('div');
@@ -129,25 +124,29 @@
                 document.body.appendChild(sparkle);
 
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = 5 + Math.random() * 10;
+                // 1. 起始速度減半 (原為 5 + Math.random() * 10)
+                const velocity = 2.5 + Math.random() * 5; 
                 const vx = Math.cos(angle) * velocity;
-                const vy = Math.sin(angle) * velocity - 5; // 初始向上噴
+                const vy = Math.sin(angle) * velocity - 3; 
                 
                 let posX = x;
                 let posY = y;
                 let opacity = 1;
-                let gravity = 0.3;
+                let gravity = 0.2;
 
                 function animate() {
                     posX += vx;
                     posY += (vy + gravity);
-                    gravity += 0.2; // 模擬重力加速度
-                    opacity -= 0.02;
+                    // 2. 加強重力感 (原為 0.2)
+                    gravity += 0.35; 
+                    // 3. 透明度下降速度減半，讓顯示時間變兩倍 (原為 0.02)
+                    opacity -= 0.01; 
 
                     sparkle.style.left = posX + 'px';
                     sparkle.style.top = posY + 'px';
                     sparkle.style.opacity = opacity;
-                    sparkle.style.transform = `scale(${opacity}) rotate(${posX}deg)`;
+                    // 讓旋轉也慢一點，看起來更優雅
+                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
 
                     if (opacity > 0) {
                         requestAnimationFrame(animate);
@@ -159,7 +158,6 @@
             }
         }
 
-        // 3. 3D 旋轉控制 (滑鼠 & 陀螺儀)
         document.addEventListener('mousemove', (e) => {
             let xAxis = (window.innerWidth / 2 - e.pageX) / 15;
             let yAxis = (window.innerHeight / 2 - e.pageY) / 25;
