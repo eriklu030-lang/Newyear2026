@@ -20,8 +20,8 @@
         .card-wrapper {
             height: 60vh;
             cursor: pointer;
-            /* 移除 transition 避免與 JS 實時跟隨衝突，改由 JS 控制平滑度 */
-            transform: rotateY(0deg) rotateX(0deg) translateZ(0); 
+            /* 使用 CSS transition 來處理「回正」和「旋轉」，這比 JS 模擬穩定 */
+            transition: transform 0.1s ease-out; 
             transform-style: preserve-3d;
             will-change: transform;
         }
@@ -75,16 +75,81 @@
 
         let currentIndex = 0;
         let sparkleCount = 0;
+        let degree = 0;
+        let isSpinning = false; // 鎖定狀態開關
 
-        // 動態變數
-        let targetRotateY = 0; // 目標 Y 軸角度 (包含累加旋轉)
-        let targetRotateX = 0; // 目標 X 軸角度
-        let currentRotateY = 0; // 當前 Y 軸角度 (平滑插值用)
-        let currentRotateX = 0; // 當前 X 軸角度 (平滑插值用)
-        let baseRotateY = 0; // 點擊帶來的 360 度基數
-
-        // 1. 滑鼠移動：設定微調目標
+        // 1. 滑鼠跟隨效果
         document.addEventListener('mousemove', (e) => {
-            const xOffset = (e.clientX - window.innerWidth / 2) / 25;
-            const yOffset = (e.clientY - window.innerHeight / 2) / 25;
-    
+            if (isSpinning) return; // 如果正在旋轉，不准滑鼠干擾
+
+            const xOffset = (e.clientX - window.innerWidth / 2) / 20;
+            const yOffset = (e.clientY - window.innerHeight / 2) / 20;
+            
+            // 平時隨滑鼠微調
+            card.style.transition = "transform 0.1s ease-out";
+            card.style.transform = `rotateY(${degree + xOffset}deg) rotateX(${-yOffset}deg) translateZ(0)`;
+        });
+
+        // 2. 點擊旋轉門
+        card.addEventListener('click', (e) => {
+            if (isSpinning) return; // 防止連點打架
+
+            isSpinning = true;
+            degree += 360;
+
+            // 啟動大旋轉，時間設為 1.2s 確保優雅
+            card.style.transition = "transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1)";
+            card.style.transform = `rotateY(${degree}deg) rotateX(0deg) translateZ(0)`;
+
+            // 在旋轉過程中切換圖片
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % contents.length;
+                cardImg.src = contents[currentIndex].img;
+                mainTitle.innerText = contents[currentIndex].t1;
+                subTitle.innerText = contents[currentIndex].t2;
+            }, 300);
+
+            // 旋轉結束後，解鎖讓滑鼠重新控制
+            setTimeout(() => {
+                isSpinning = false;
+            }, 1200);
+
+            createFirework(e.clientX, e.clientY);
+        });
+
+        // ✨ 煙火邏輯 (維持你要求的物理參數)
+        function createFirework(x, y) {
+            for (let i = 0; i < 20; i++) {
+                if (sparkleCount >= 50) break;
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = '✨';
+                document.body.appendChild(sparkle);
+                sparkleCount++;
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 2.5 + Math.random() * 5; 
+                let vx = Math.cos(angle) * velocity;
+                let vy = Math.sin(angle) * velocity - 3; 
+                let posX = x;
+                let posY = y;
+                let opacity = 1;
+                let gravity = 0.2;
+
+                function animateSparkle() {
+                    posX += vx;
+                    posY += (vy + gravity);
+                    gravity += 0.35; 
+                    opacity -= 0.01; 
+                    sparkle.style.left = posX + 'px';
+                    sparkle.style.top = posY + 'px';
+                    sparkle.style.opacity = opacity;
+                    sparkle.style.transform = `scale(${opacity}) rotate(${posX * 0.5}deg)`;
+                    if (opacity > 0) { requestAnimationFrame(animateSparkle); } else { sparkle.remove(); sparkleCount--; }
+                }
+                animateSparkle();
+            }
+        }
+    </script>
+</body>
+</html>
