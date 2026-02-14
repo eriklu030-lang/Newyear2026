@@ -3,60 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erik 的新年祝福</title>
+    <title>Erik's New Year Card</title>
     <style>
-        :root {
-            --bg-color: #0d0202; 
-            --text-color: #ffffff;
-        }
-
         body {
             margin: 0;
-            padding: 0;
+            background-color: #0d0202;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--bg-color);
-            font-family: sans-serif;
-            overflow: hidden; 
-            perspective: 2000px;
+            overflow: hidden;
+            perspective: 2000px; /* 3D 透視 */
         }
 
         .card-wrapper {
             height: 60vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
             cursor: pointer;
-            /* 移除之前的 JS 動態干擾，改用 CSS 過渡 */
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* 旋轉類別：當 JS 加入這個 class 時觸發旋轉 */
-        .spinning {
-            transform: rotateY(360deg);
+            /* 強制硬體加速，防止動畫不回饋 */
+            transform: rotateY(0deg) translateZ(0); 
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
         }
 
         .card-image {
             height: 100%;
-            width: auto;
             border-radius: 15px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             pointer-events: none;
+            display: block;
         }
 
         .text-container {
             margin-top: 3vh;
             text-align: center;
-            color: var(--text-color);
+            color: white;
+            font-family: sans-serif;
             pointer-events: none;
         }
-
-        .title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
-        .subtitle { font-size: 1.2rem; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -66,18 +50,19 @@
     </div>
 
     <div class="text-container">
-        <div class="title">Erik 祝大家新年快樂</div>
-        <div class="subtitle">Happy Lunar New Year</div>
+        <h1 style="margin: 0; font-size: 2rem;">Erik 祝大家新年快樂</h1>
+        <p style="opacity: 0.8;">Happy Lunar New Year</p>
     </div>
 
     <script>
         const card = document.getElementById('card');
-        let isSpinning = false;
+        let degree = 0;
 
         card.addEventListener('click', () => {
-            if (isSpinning) return; // 防止重複點擊導致動畫崩潰
-
-            isSpinning = true;
-            
-            // 讓卡片旋轉
-            card.style.transition = "transform 1s cubic-bezier(0.1, 0.7, 0.
+            // 每次點擊增加 360 度，確保瀏覽器偵測到數值變化
+            degree += 360;
+            card.style.transform = `rotateY(${degree}deg) translateZ(0)`;
+        });
+    </script>
+</body>
+</html>
