@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erik 的新年祝福</title>
+    <style>
+        :root {
+            /* 這裡設定背景顏色：建議先用深灰色，等圖片放上去後，
+               你可以根據圖片主色調調整成更深的顏色 (例如深紅或深金) */
+            --bg-color: #1a1a1a; 
+            --text-color: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            overflow: hidden; /* 防止滾動影響視覺 */
+            perspective: 1000px; /* 建立 3D 空間透視 */
+        }
+
+        /* 3D 卡片容器 */
+        .card-wrapper {
+            width: 30vw; /* 佔螢幕 30% */
+            min-width: 300px; /* 手機端不至於太小 */
+            aspect-ratio: 3 / 4; /* 假設你的賀卡是直式的，可依需求調整比例 */
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            pointer-events: none; /* 讓圖片不干擾滑鼠事件 */
+        }
+
+        /* 文字區塊 */
+        .text-container {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-color);
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-wrapper" id="card">
+        <img src="./card_image.png" alt="Erik's New Year Card" class="card-image">
+    </div>
+
+    <div class="text-container">
+        <div class="title">Erik 祝大家新年快樂</div>
+        <div class="subtitle">Happy Lunar New Year</div>
+    </div>
+
+    <script>
+        const card = document.getElementById('card');
+        const root = document.documentElement;
+
+        document.addEventListener('mousemove', (e) => {
+            // 計算滑鼠相對於視窗中心點的偏移量
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 15; // 左右旋轉係數
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 25; // 上下旋轉係數
+
+            // 限制旋轉角度：左右最大 30 度，上下最大 10 度
+            const rotateY = Math.max(Math.min(xAxis, 30), -30);
+            const rotateX = Math.max(Math.min(-yAxis, 10), -10);
+
+            card.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+        });
+
+        // 當滑鼠離開時，卡片緩慢回正
+        document.addEventListener('mouseleave', () => {
+            card.style.transition = "transform 0.5s ease";
+            card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        document.addEventListener('mouseenter', () => {
+            card.style.transition = "none";
+        });
+    </script>
+</body>
+</html>
